@@ -344,7 +344,6 @@
                 // Analyze PDF content
                 const pages = pdfDoc.getPages();
                 let imageCount = 0;
-                let textCount = 0;
                 for (const page of pages) {
                     const resources = page.node.Resources?.XObject || {};
                     for (const value of Object.values(resources)) {
@@ -352,12 +351,8 @@
                             imageCount++;
                         }
                     }
-                    const text = await page.getTextContent();
-                    if (text.items.length > 0) {
-                        textCount += text.items.length;
-                    }
                 }
-                contentInfo.textContent = `PDF contains ${pages.length} page(s), ${imageCount} image(s), ${textCount} text element(s)`;
+                contentInfo.textContent = `PDF contains ${pages.length} page(s), ${imageCount} image(s)`;
 
                 // Compress all images in the PDF
                 let imagesCompressed = false;
@@ -398,7 +393,7 @@
                 }
 
                 if (!imagesCompressed) {
-                    errorMessage.textContent = 'No compressible images found. Applied font subsetting and basic optimization.';
+                    errorMessage.textContent = 'No compressible images found in PDF. Applied font subsetting and basic optimization.';
                     errorMessage.style.display = 'block';
                 }
 
