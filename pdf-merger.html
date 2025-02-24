@@ -75,6 +75,18 @@
             letter-spacing: 0.5px;
         }
 
+        .hint {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        #fileList {
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #34495e;
+        }
+
         input[type="file"] {
             padding: 15px;
             border: 2px dashed #3498db;
@@ -205,6 +217,8 @@
         <div class="input-section">
             <label for="pdfInput">Upload PDFs to Merge:</label>
             <input type="file" id="pdfInput" accept=".pdf" multiple>
+            <p class="hint">Hold Ctrl (Cmd on Mac) or Shift to select multiple PDFs.</p>
+            <div id="fileList"></div>
         </div>
 
         <button id="mergeBtn" disabled>Merge PDFs</button>
@@ -230,41 +244,58 @@
     <!-- JavaScript for functionality -->
     <script>
         const pdfInput = document.getElementById('pdfInput');
+        const fileList = document.getElementById('fileList');
         const mergeBtn = document.getElementById('mergeBtn');
         const downloadLink = document.getElementById('downloadLink');
 
-        // Enable merge button when 2+ files are uploaded
+        // Display selected files and enable merge button
         pdfInput.addEventListener('change', () => {
-            mergeBtn.disabled = pdfInput.files.length < 2;
+            const files = pdfInput.files;
+            fileList.innerHTML = '';
+            if (files.length > 0) {
+                fileList.innerHTML = `<strong>Selected Files:</strong><br>${Array.from(files).map(f => f.name).join('<br>')}`;
+                mergeBtn.disabled = files.length < 2;
+            } else {
+                fileList.innerHTML = 'No files selected.';
+                mergeBtn.disabled = true;
+            }
         });
 
         // Merge PDFs
         mergeBtn.addEventListener('click', async () => {
             const files = pdfInput.files;
-            if (files.length < 2) return;
+            if (files.length < 2) {
+                alert('Please select at least 2 PDF files to merge.');
+                return;
+            }
 
             mergeBtn.disabled = true;
             mergeBtn.textContent = 'Merging...';
 
-            const pdfDoc = await PDFLib.PDFDocument.create();
+            try {
+                const pdfDoc = await PDFLib.PDFDocument.create();
 
-            for (const file of files) {
-                const arrayBuffer = await file.arrayBuffer();
-                const srcDoc = await PDFLib.PDFDocument.load(arrayBuffer);
-                const pages = await pdfDoc.copyPages(srcDoc, srcDoc.getPageIndices());
-                pages.forEach(page => pdfDoc.addPage(page));
+                for (const file of files) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const srcDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                    const pages = await pdfDoc.copyPages(srcDoc, srcDoc.getPageIndices());
+                    pages.forEach(page => pdfDoc.addPage(page));
+                }
+
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+
+                downloadLink.href = url;
+                downloadLink.download = 'merged-pdf.pdf';
+                downloadLink.textContent = 'Download Merged PDF';
+                downloadLink.hidden = false;
+                downloadLink.style.opacity = 0;
+                setTimeout(() => downloadLink.style.opacity = 1, 50);
+            } catch (error) {
+                console.error('Error merging PDFs:', error);
+                alert('An error occurred while merging PDFs. Please try again.');
             }
-
-            const pdfBytes = await pdfDoc.save();
-            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-
-            downloadLink.href = url;
-            downloadLink.download = 'merged-pdf.pdf';
-            downloadLink.textContent = 'Download Merged PDF';
-            downloadLink.hidden = false;
-            downloadLink.style.opacity = 0;
-            setTimeout(() => downloadLink.style.opacity = 1, 50);
 
             mergeBtn.textContent = 'Merge PDFs';
             mergeBtn.disabled = false;
