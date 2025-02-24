@@ -164,7 +164,7 @@
             box-shadow: none;
         }
 
-        #downloadLink {
+        #downloadLink, #textDownloadLink {
             display: inline-block;
             margin-top: 20px;
             padding: 12px 25px;
@@ -175,9 +175,10 @@
             font-weight: 600;
             transition: all 0.3s ease;
             box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+            margin-right: 10px;
         }
 
-        #downloadLink:hover {
+        #downloadLink:hover, #textDownloadLink:hover {
             background: linear-gradient(45deg, #27ae60, #2ecc71);
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(46, 204, 113, 0.6);
@@ -268,6 +269,7 @@
             <div id="contentInfo"></div>
             <div id="sizeInfo"></div>
             <a id="downloadLink" hidden>Download Compressed PDF</a>
+            <a id="textDownloadLink" hidden>Download as Text</a>
         </div>
     </div>
 
@@ -292,6 +294,7 @@
         const compressionValue = document.getElementById('compressionValue');
         const compressBtn = document.getElementById('compressBtn');
         const downloadLink = document.getElementById('downloadLink');
+        const textDownloadLink = document.getElementById('textDownloadLink');
         const filePreview = document.getElementById('filePreview');
         const errorMessage = document.getElementById('errorMessage');
         const sizeInfo = document.getElementById('sizeInfo');
@@ -322,6 +325,8 @@
             errorMessage.style.display = 'none';
             sizeInfo.textContent = '';
             contentInfo.textContent = '';
+            downloadLink.hidden = true;
+            textDownloadLink.hidden = true;
         });
 
         // Compress PDF
@@ -334,6 +339,8 @@
             errorMessage.style.display = 'none';
             sizeInfo.textContent = '';
             contentInfo.textContent = '';
+            downloadLink.hidden = true;
+            textDownloadLink.hidden = true;
 
             try {
                 const originalSize = file.size;
@@ -344,6 +351,7 @@
                 // Analyze PDF content
                 const pages = pdfDoc.getPages();
                 let imageCount = 0;
+                let textContent = '';
                 for (const page of pages) {
                     const resources = page.node.Resources?.XObject || {};
                     for (const value of Object.values(resources)) {
@@ -351,6 +359,9 @@
                             imageCount++;
                         }
                     }
+                    // Extract text for fallback
+                    const text = page.node.getText ? page.node.getText() : '';
+                    textContent += text + '\n';
                 }
                 contentInfo.textContent = `PDF contains ${pages.length} page(s), ${imageCount} image(s)`;
 
@@ -394,9 +405,24 @@
                     }
                 }
 
+                // Prepare outputs
+                const pdfBytes = await pdfDoc.save({ useObjectStreams: true }); // Use object streams for smaller size
+                const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const compressedSize = pdfBlob.size;
+
+                // Text fallback if no significant compression
+                let textOffered = false;
                 if (!imagesCompressed && !fontsSubset) {
-                    errorMessage.textContent = 'No compressible images or reducible fonts found in PDF. Basic optimization applied.';
+                    errorMessage.textContent = 'No compressible images or reducible fonts found. Basic optimization applied. Try text export for smaller size.';
                     errorMessage.style.display = 'block';
+                    const textBlob = new Blob([textContent], { type: 'text/plain' });
+                    textDownloadLink.href = URL.createObjectURL(textBlob);
+                    textDownloadLink.download = 'compressed.txt';
+                    textDownloadLink.textContent = 'Download as Text';
+                    textDownloadLink.hidden = false;
+                    textDownloadLink.style.opacity = 0;
+                    setTimeout(() => textDownloadLink.style.opacity = 1, 50);
+                    textOffered = true;
                 } else if (!imagesCompressed) {
                     errorMessage.textContent = 'No compressible images found. Applied font subsetting and basic optimization.';
                     errorMessage.style.display = 'block';
@@ -405,12 +431,8 @@
                     errorMessage.style.display = 'block';
                 }
 
-                const pdfBytes = await pdfDoc.save({ useObjectStreams: true }); // Use object streams for smaller size
-                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                const compressedSize = blob.size;
-
-                sizeInfo.textContent = `Original: ${formatSize(originalSize)} | Compressed: ${formatSize(compressedSize)} | Reduction: ${((originalSize - compressedSize) / originalSize * 100).toFixed(2)}%`;
-                downloadLink.href = URL.createObjectURL(blob);
+                sizeInfo.textContent = `Original: ${formatSize(originalSize)} | Compressed: ${formatSize(compressedSize)} | Reduction: ${((originalSize - compressedSize) / originalSize * 100).toFixed(2)}%${textOffered ? ' | Text: ' + formatSize(textContent.length) : ''}`;
+                downloadLink.href = URL.createObjectURL(pdfBlob);
                 downloadLink.download = 'compressed.pdf';
                 downloadLink.textContent = 'Download Compressed PDF';
                 downloadLink.hidden = false;
