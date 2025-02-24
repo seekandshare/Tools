@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Free online PDF Converter tool to convert PDF files to Word, JPG, or other formats. Fast, easy, and optimized for performance.">
+    <meta name="keywords" content="PDF converter, convert PDF to Word, PDF to JPG, free PDF tool, online PDF editor, SEO optimized">
+    <meta name="author" content="xAI Grok">
+    <meta name="robots" content="index, follow">
+    <title>PDF Converter Tool - Convert PDFs Online</title>
+
+    <!-- Favicon for branding -->
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Google Fonts for typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS for enhanced styling -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding: 60px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 50px;
+            text-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            animation: fadeInDown 1.2s ease-out;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.97);
+            padding: 45px;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 750px;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .container:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-section, .format-section, .output-section {
+            margin-bottom: 35px;
+            animation: fadeInUp 0.9s ease-out;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 1.3rem;
+            color: #34495e;
+            margin-bottom: 12px;
+            display: block;
+            letter-spacing: 0.8px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="file"] {
+            padding: 20px;
+            border: 3px dashed #ff6f61;
+            border-radius: 20px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            cursor: pointer;
+            transition: all 0.4s ease;
+            font-size: 1.1rem;
+            color: #34495e;
+        }
+
+        input[type="file"]:hover {
+            border-color: #e74c3c;
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.03);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ff6f61;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            color: #34495e;
+            background: linear-gradient(135deg, #fff, #f9ebeb);
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        select:hover, select:focus {
+            border-color: #e74c3c;
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.2);
+            outline: none;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6f61, #e74c3c);
+            color: white;
+            border: none;
+            padding: 16px 35px;
+            border-radius: 35px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.3rem;
+            font-weight: 600;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.5);
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(231, 76, 60, 0.7);
+            background: linear-gradient(45deg, #e74c3c, #ff6f61);
+        }
+
+        button:disabled {
+            background: #d3d3d3;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #downloadLink {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 14px 30px;
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            text-decoration: none;
+            border-radius: 35px;
+            font-weight: 600;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.5);
+            font-size: 1.2rem;
+        }
+
+        #downloadLink:hover {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(46, 204, 113, 0.7);
+        }
+
+        .ad-space {
+            width: 100%;
+            max-width: 728px;
+            margin: 50px 0;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(8px);
+            animation: fadeIn 1.2s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .ad-space ins {
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            h1 { font-size: 2.4rem; }
+            .container { padding: 30px; max-width: 90%; }
+            button { padding: 14px 25px; font-size: 1.1rem; }
+            .ad-space { max-width: 100%; padding: 20px; }
+            label { font-size: 1.1rem; }
+            select { font-size: 1rem; padding: 12px; }
+            input[type="file"] { padding: 15px; font-size: 1rem; }
+            #downloadLink { padding: 12px 25px; font-size: 1rem; }
+        }
+    </style>
+
+    <!-- Google AdSense Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+            crossorigin="anonymous"></script>
+    <!-- Replace 'ca-pub-XXXXXXXXXXXXXXXX' with your AdSense Publisher ID -->
+</head>
+<body>
+    <!-- Top Ad Space -->
+    <div class="ad-space">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="YYYYYYYYYY"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+    <h1>PDF Converter Tool</h1>
+    <div class="container">
+        <div class="input-section">
+            <label for="pdfInput">Upload Your PDF:</label>
+            <input type="file" id="pdfInput" accept=".pdf">
+        </div>
+
+        <div class="format-section">
+            <label for="formatSelect">Choose Output Format:</label>
+            <select id="formatSelect">
+                <option value="word">Word (DOCX)</option>
+                <option value="jpg">JPG (Images)</option>
+                <option value="annotated">PDF with Annotations</option>
+            </select>
+        </div>
+
+        <button id="convertBtn" disabled>Convert PDF</button>
+
+        <div class="output-section">
+            <a id="downloadLink" hidden>Download Converted File</a>
+        </div>
+    </div>
+
+    <!-- Bottom Ad Space -->
+    <div class="ad-space">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="ZZZZZZZZZZ"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+    <!-- JavaScript for functionality -->
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmlDocx/0.0.1/htmlDocx.min.js"></script>
+    <script>
+        const pdfInput = document.getElementById('pdfInput');
+        const formatSelect = document.getElementById('formatSelect');
+        const convertBtn = document.getElementById('convertBtn');
+        const downloadLink = document.getElementById('downloadLink');
+
+        // Enable convert button when a file is uploaded
+        pdfInput.addEventListener('change', () => {
+            convertBtn.disabled = !pdfInput.files.length;
+        });
+
+        // Convert PDF based on selected format
+        convertBtn.addEventListener('click', async () => {
+            const file = pdfInput.files[0];
+            if (!file) return;
+
+            convertBtn.disabled = true;
+            convertBtn.textContent = 'Converting...';
+
+            try {
+                const format = formatSelect.value;
+                const arrayBuffer = await file.arrayBuffer();
+                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+
+                if (format === 'word') {
+                    let textContent = '';
+                    for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+                        const page = pdfDoc.getPage(i);
+                        const text = await page.getTextContent();
+                        textContent += text.items.map(item => item.str).join(' ') + '\n';
+                    }
+                    const html = `<p>${textContent.replace(/\n/g, '<br>')}</p>`;
+                    const docxBlob = htmlDocx.asBlob(html);
+                    const url = URL.createObjectURL(docxBlob);
+                    downloadLink.href = url;
+                    downloadLink.download = 'converted.docx';
+                } else if (format === 'jpg') {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const page = pdfDoc.getPage(0);
+                    const viewport = page.getViewport({ scale: 2 });
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    await page.render({ canvasContext: ctx, viewport }).promise;
+                    const jpgUrl = canvas.toDataURL('image/jpeg', 0.9);
+                    downloadLink.href = jpgUrl;
+                    downloadLink.download = 'converted.jpg';
+                } else if (format === 'annotated') {
+                    const page = pdfDoc.getPage(0);
+                    page.drawText('Converted by ToolBox', {
+                        x: 50,
+                        y: page.getHeight() - 50,
+                        size: 20,
+                        color: PDFLib.rgb(1, 0, 0),
+                    });
+                    const pdfBytes = await pdfDoc.save();
+                    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                    const url = URL.createObjectURL(blob);
+                    downloadLink.href = url;
+                    downloadLink.download = 'annotated.pdf';
+                }
+
+                downloadLink.textContent = `Download ${format.toUpperCase()} File`;
+                downloadLink.hidden = false;
+                downloadLink.style.opacity = 0;
+                setTimeout(() => downloadLink.style.opacity = 1, 100);
+            } catch (error) {
+                console.error('Conversion error:', error);
+                alert('An error occurred during conversion. Please try again.');
+            }
+
+            convertBtn.textContent = 'Convert PDF';
+            convertBtn.disabled = false;
+        });
+    </script>
+
+    <!-- Include pdf2json for text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+</body>
+</html>
