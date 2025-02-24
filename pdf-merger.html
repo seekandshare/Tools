@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Free online PDF Merger tool to combine multiple PDFs into one file. Customize compression levels for optimized images and fast performance.">
-    <meta name="keywords" content="PDF merger, merge PDFs, compress PDF images, free PDF tool, online PDF editor, SEO optimized">
+    <meta name="description" content="Free online PDF Merger tool to combine multiple PDF files into one. Fast, easy, and optimized for performance.">
+    <meta name="keywords" content="PDF merger, merge PDFs, combine PDF files, free PDF tool, online PDF editor, SEO optimized">
     <meta name="author" content="xAI Grok">
     <meta name="robots" content="index, follow">
     <title>PDF Merger Tool - Combine PDFs Online</title>
@@ -14,9 +14,6 @@
 
     <!-- Google Fonts for typography -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <!-- PDF.js Library for PDF manipulation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
 
     <!-- CSS for enhanced styling -->
     <style>
@@ -64,7 +61,7 @@
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
         }
 
-        .input-section, .compression-section, .output-section {
+        .input-section, .output-section {
             margin-bottom: 30px;
             animation: fadeInUp 0.8s ease-out;
         }
@@ -92,39 +89,6 @@
             border-color: #2980b9;
             background: rgba(255, 255, 255, 1);
             transform: scale(1.02);
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 10px;
-            background: linear-gradient(to right, #3498db, #74ebd5);
-            border-radius: 5px;
-            outline: none;
-            transition: background 0.3s ease;
-            -webkit-appearance: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 24px;
-            height: 24px;
-            background: #ffffff;
-            border: 2px solid #3498db;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
-            transition: transform 0.2s ease;
-        }
-
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.1);
-        }
-
-        #compressionValue {
-            font-size: 1.3rem;
-            color: #3498db;
-            margin-left: 15px;
-            font-weight: 600;
         }
 
         button {
@@ -214,7 +178,6 @@
             button { padding: 12px 20px; font-size: 1.1rem; }
             .ad-space { max-width: 100%; padding: 15px; }
             label { font-size: 1rem; }
-            #compressionValue { font-size: 1.1rem; }
         }
     </style>
 
@@ -244,12 +207,6 @@
             <input type="file" id="pdfInput" accept=".pdf" multiple>
         </div>
 
-        <div class="compression-section">
-            <label for="compressionRange">Image Compression Level:</label>
-            <input type="range" id="compressionRange" min="0" max="100" value="50">
-            <span id="compressionValue">50%</span>
-        </div>
-
         <button id="mergeBtn" disabled>Merge PDFs</button>
 
         <div class="output-section">
@@ -273,22 +230,15 @@
     <!-- JavaScript for functionality -->
     <script>
         const pdfInput = document.getElementById('pdfInput');
-        const compressionRange = document.getElementById('compressionRange');
-        const compressionValue = document.getElementById('compressionValue');
         const mergeBtn = document.getElementById('mergeBtn');
         const downloadLink = document.getElementById('downloadLink');
 
-        // Update compression value dynamically
-        compressionRange.addEventListener('input', () => {
-            compressionValue.textContent = `${compressionRange.value}%`;
-        });
-
-        // Enable merge button when files are uploaded
+        // Enable merge button when 2+ files are uploaded
         pdfInput.addEventListener('change', () => {
             mergeBtn.disabled = pdfInput.files.length < 2;
         });
 
-        // Merge PDFs and compress images
+        // Merge PDFs
         mergeBtn.addEventListener('click', async () => {
             const files = pdfInput.files;
             if (files.length < 2) return;
@@ -297,32 +247,12 @@
             mergeBtn.textContent = 'Merging...';
 
             const pdfDoc = await PDFLib.PDFDocument.create();
-            const compressionLevel = (100 - compressionRange.value) / 100; // 0-1 scale
 
             for (const file of files) {
                 const arrayBuffer = await file.arrayBuffer();
                 const srcDoc = await PDFLib.PDFDocument.load(arrayBuffer);
-
-                // Copy pages
                 const pages = await pdfDoc.copyPages(srcDoc, srcDoc.getPageIndices());
                 pages.forEach(page => pdfDoc.addPage(page));
-
-                // Compress images in the PDF
-                const pageCount = srcDoc.getPageCount();
-                for (let i = 0; i < pageCount; i++) {
-                    const page = srcDoc.getPage(i);
-                    const images = page.node.getImages();
-                    for (const img of images) {
-                        try {
-                            const { width, height } = img.image;
-                            const scaledImg = img.image.scale(compressionLevel);
-                            const newImg = await pdfDoc.embedJpeg(await scaledImg.encode());
-                            img.replace(newImg);
-                        } catch (e) {
-                            console.warn('Image compression skipped:', e);
-                        }
-                    }
-                }
             }
 
             const pdfBytes = await pdfDoc.save();
