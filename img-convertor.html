@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Free online Image Converter tool to convert images between JPG, PNG, BMP, and WebP formats effortlessly. Fast, easy, and optimized for performance.">
+    <meta name="keywords" content="image converter, convert JPG, convert PNG, convert BMP, convert WebP, free image tool, SEO optimized">
+    <meta name="author" content="xAI Grok">
+    <meta name="robots" content="index, follow">
+    <title>Image Converter Tool - Convert JPG, PNG, BMP, WebP Online</title>
+
+    <!-- Favicon for branding -->
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Google Fonts for typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS for responsive and attractive design -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #74ebd5, #acb6e5);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding: 50px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 700px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .container:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .input-section, .format-section, .output-section {
+            margin-bottom: 30px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #34495e;
+            margin-bottom: 10px;
+            display: block;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="file"] {
+            padding: 15px;
+            border: 2px dashed #3498db;
+            border-radius: 15px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]:hover {
+            border-color: #2980b9;
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.02);
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            color: #34495e;
+            background: #f9f9f9;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        select:hover, select:focus {
+            border-color: #2980b9;
+            outline: none;
+        }
+
+        button {
+            background: linear-gradient(45deg, #3498db, #8e44ad);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.6);
+            background: linear-gradient(45deg, #8e44ad, #3498db);
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #downloadLink {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        #downloadLink:hover {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(46, 204, 113, 0.6);
+        }
+
+        canvas {
+            display: none; /* Hidden canvas for conversion */
+        }
+
+        .ad-space {
+            width: 100%;
+            max-width: 728px;
+            margin: 40px 0;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 1s ease-out;
+        }
+
+        .ad-space ins {
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            h1 { font-size: 2.2rem; }
+            .container { padding: 30px; }
+            button { padding: 12px 20px; font-size: 1.1rem; }
+            .ad-space { max-width: 100%; padding: 15px; }
+            label { font-size: 1rem; }
+            select { font-size: 1rem; }
+        }
+    </style>
+
+    <!-- Google AdSense Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+            crossorigin="anonymous"></script>
+    <!-- Replace 'ca-pub-XXXXXXXXXXXXXXXX' with your AdSense Publisher ID -->
+</head>
+<body>
+    <!-- Top Ad Space -->
+    <div class="ad-space">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="YYYYYYYYYY"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+    <h1>Image Converter Tool</h1>
+    <div class="container">
+        <div class="input-section">
+            <label for="imageInput">Upload Image to Convert:</label>
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
+
+        <div class="format-section">
+            <label for="formatSelect">Convert To:</label>
+            <select id="formatSelect">
+                <option value="image/jpeg">JPG</option>
+                <option value="image/png">PNG</option>
+                <option value="image/bmp">BMP</option>
+                <option value="image/webp">WebP</option>
+            </select>
+        </div>
+
+        <button id="convertBtn" disabled>Convert Image</button>
+
+        <div class="output-section">
+            <canvas id="canvas" style="display: none;"></canvas>
+            <a id="downloadLink" hidden>Download Converted Image</a>
+        </div>
+    </div>
+
+    <!-- Bottom Ad Space -->
+    <div class="ad-space">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="ZZZZZZZZZZ"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+    <!-- JavaScript for functionality -->
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const formatSelect = document.getElementById('formatSelect');
+        const convertBtn = document.getElementById('convertBtn');
+        const downloadLink = document.getElementById('downloadLink');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let img = new Image();
+
+        // Enable convert button when an image is uploaded
+        imageInput.addEventListener('change', () => {
+            const file = imageInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                        convertBtn.disabled = false;
+                    };
+                };
+                reader.onerror = () => alert('Failed to load image.');
+                reader.readAsDataURL(file);
+            } else {
+                convertBtn.disabled = true;
+            }
+            downloadLink.hidden = true;
+        });
+
+        // Convert image to selected format
+        convertBtn.addEventListener('click', () => {
+            const format = formatSelect.value;
+            convertBtn.disabled = true;
+            convertBtn.textContent = 'Converting...';
+
+            try {
+                const dataUrl = canvas.toDataURL(format, 0.9); // Quality set to 0.9
+                downloadLink.href = dataUrl;
+                downloadLink.download = `converted-image.${format.split('/')[1]}`;
+                downloadLink.textContent = 'Download Converted Image';
+                downloadLink.hidden = false;
+                downloadLink.style.opacity = 0;
+                setTimeout(() => downloadLink.style.opacity = 1, 50);
+            } catch (error) {
+                console.error('Conversion error:', error);
+                alert('Failed to convert image. Please try again.');
+            }
+
+            convertBtn.textContent = 'Convert Image';
+            convertBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>
