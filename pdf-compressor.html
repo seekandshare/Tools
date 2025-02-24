@@ -383,17 +383,25 @@
                 }
 
                 // Subset embedded fonts to reduce size
+                let fontsSubset = false;
                 const fonts = pdfDoc.context.enumerateIndirectObjects().filter(obj => obj[1] instanceof PDFLib.PDFFont);
                 for (const [ref, font] of fonts) {
                     try {
                         await font.embedSubset(); // Subset fonts to include only used glyphs
+                        fontsSubset = true;
                     } catch (e) {
                         console.warn('Skipping font subsetting due to error:', e);
                     }
                 }
 
-                if (!imagesCompressed) {
-                    errorMessage.textContent = 'No compressible images found in PDF. Applied font subsetting and basic optimization.';
+                if (!imagesCompressed && !fontsSubset) {
+                    errorMessage.textContent = 'No compressible images or reducible fonts found in PDF. Basic optimization applied.';
+                    errorMessage.style.display = 'block';
+                } else if (!imagesCompressed) {
+                    errorMessage.textContent = 'No compressible images found. Applied font subsetting and basic optimization.';
+                    errorMessage.style.display = 'block';
+                } else if (!fontsSubset) {
+                    errorMessage.textContent = 'No reducible fonts found. Applied image compression and basic optimization.';
                     errorMessage.style.display = 'block';
                 }
 
@@ -401,7 +409,7 @@
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const compressedSize = blob.size;
 
-                sizeInfo.textContent = `Original: ${formatSize(originalSize)} | Compressed: ${formatSize(compressedSize)}`;
+                sizeInfo.textContent = `Original: ${formatSize(originalSize)} | Compressed: ${formatSize(compressedSize)} | Reduction: ${((originalSize - compressedSize) / originalSize * 100).toFixed(2)}%`;
                 downloadLink.href = URL.createObjectURL(blob);
                 downloadLink.download = 'compressed.pdf';
                 downloadLink.textContent = 'Download Compressed PDF';
