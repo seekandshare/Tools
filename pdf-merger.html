@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Free online PDF Merger tool to combine multiple PDFs into one file. Customize compression levels for optimized images and fast performance.">
+    <meta name="keywords" content="PDF merger, merge PDFs, compress PDF images, free PDF tool, online PDF editor, SEO optimized">
+    <meta name="author" content="xAI Grok">
+    <meta name="robots" content="index, follow">
+    <title>PDF Merger Tool - Combine PDFs Online</title>
+
+    <!-- Favicon for branding -->
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Google Fonts for typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- PDF.js Library for PDF manipulation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+
+    <!-- CSS for enhanced styling -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #74ebd5, #acb6e5);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding: 50px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 700px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .container:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .input-section, .compression-section, .output-section {
+            margin-bottom: 30px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #34495e;
+            margin-bottom: 10px;
+            display: block;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="file"] {
+            padding: 15px;
+            border: 2px dashed #3498db;
+            border-radius: 15px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]:hover {
+            border-color: #2980b9;
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.02);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(to right, #3498db, #74ebd5);
+            border-radius: 5px;
+            outline: none;
+            transition: background 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #ffffff;
+            border: 2px solid #3498db;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        #compressionValue {
+            font-size: 1.3rem;
+            color: #3498db;
+            margin-left: 15px;
+            font-weight: 600;
+        }
+
+        button {
+            background: linear-gradient(45deg, #3498db, #8e44ad);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.6);
+            background: linear-gradient(45deg, #8e44ad, #3498db);
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #downloadLink {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        #downloadLink:hover {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(46, 204, 113, 0.6);
+        }
+
+        .ad-space {
+            width: 100%;
+            max-width: 728px;
+            margin: 40px 0;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 1s ease-out;
+        }
+
+        .ad-space ins {
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            h1 { font-size: 2.2rem; }
+            .container { padding: 30px; }
+            button { padding: 12px 20px; font-size: 1.1rem; }
+            .ad-space { max-width: 100%; padding: 15px; }
+            label { font-size: 1rem; }
+            #compressionValue { font-size: 1.1rem; }
+        }
+    </style>
+
+    <!-- Google AdSense Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+            crossorigin="anonymous"></script>
+    <!-- Replace 'ca-pub-XXXXXXXXXXXXXXXX' with your AdSense Publisher ID -->
+</head>
+<body>
+    <!-- Top Ad Space -->
+    <div class="ad-space">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="YYYYYYYYYY"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+    <h1>PDF Merger Tool</h1>
+    <div class="container">
+        <div class="input-section">
+            <label for="pdfInput">Upload PDFs to Merge:</label>
+            <input type="file" id="pdfInput" accept=".pdf" multiple>
+        </div>
+
+        <div class="compression-section">
+            <label for="compressionRange">Image Compression Level:</label>
+            <input type="range" id="compressionRange" min="0" max="100" value="50">
+            <span id="compressionValue">50%</span>
+        </div>
+
+        <button id="mergeBtn" disabled>Merge PDFs</button>
+
+        <div class="output-section">
+            <a id="downloadLink" hidden>Download Merged PDF</a>
+        </div>
+    </div>
+
+    <!-- Bottom Ad Space -->
+    <div class="ad-space">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="ZZZZZZZZZZ"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+    <!-- JavaScript for functionality -->
+    <script>
+        const pdfInput = document.getElementById('pdfInput');
+        const compressionRange = document.getElementById('compressionRange');
+        const compressionValue = document.getElementById('compressionValue');
+        const mergeBtn = document.getElementById('mergeBtn');
+        const downloadLink = document.getElementById('downloadLink');
+
+        // Update compression value dynamically
+        compressionRange.addEventListener('input', () => {
+            compressionValue.textContent = `${compressionRange.value}%`;
+        });
+
+        // Enable merge button when files are uploaded
+        pdfInput.addEventListener('change', () => {
+            mergeBtn.disabled = pdfInput.files.length < 2;
+        });
+
+        // Merge PDFs and compress images
+        mergeBtn.addEventListener('click', async () => {
+            const files = pdfInput.files;
+            if (files.length < 2) return;
+
+            mergeBtn.disabled = true;
+            mergeBtn.textContent = 'Merging...';
+
+            const pdfDoc = await PDFLib.PDFDocument.create();
+            const compressionLevel = (100 - compressionRange.value) / 100; // 0-1 scale
+
+            for (const file of files) {
+                const arrayBuffer = await file.arrayBuffer();
+                const srcDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+
+                // Copy pages
+                const pages = await pdfDoc.copyPages(srcDoc, srcDoc.getPageIndices());
+                pages.forEach(page => pdfDoc.addPage(page));
+
+                // Compress images in the PDF
+                const pageCount = srcDoc.getPageCount();
+                for (let i = 0; i < pageCount; i++) {
+                    const page = srcDoc.getPage(i);
+                    const images = page.node.getImages();
+                    for (const img of images) {
+                        try {
+                            const { width, height } = img.image;
+                            const scaledImg = img.image.scale(compressionLevel);
+                            const newImg = await pdfDoc.embedJpeg(await scaledImg.encode());
+                            img.replace(newImg);
+                        } catch (e) {
+                            console.warn('Image compression skipped:', e);
+                        }
+                    }
+                }
+            }
+
+            const pdfBytes = await pdfDoc.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+
+            downloadLink.href = url;
+            downloadLink.download = 'merged-pdf.pdf';
+            downloadLink.textContent = 'Download Merged PDF';
+            downloadLink.hidden = false;
+            downloadLink.style.opacity = 0;
+            setTimeout(() => downloadLink.style.opacity = 1, 50);
+
+            mergeBtn.textContent = 'Merge PDFs';
+            mergeBtn.disabled = false;
+        });
+    </script>
+
+    <!-- Include PDF-lib for merging PDFs -->
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+</body>
+</html>
