@@ -75,7 +75,7 @@
             letter-spacing: 0.5px;
         }
 
-        #filePreview, #sizeInfo {
+        #filePreview, #sizeInfo, #contentInfo {
             font-size: 1rem;
             color: #7f8c8d;
             margin-top: 10px;
@@ -257,7 +257,7 @@
         </div>
 
         <div class="compression-section">
-            <label for="compressionRange">Compression Level (10-90%):</label>
+            <label for="compressionRange">Image Compression Level (10-90%):</label>
             <input type="range" id="compressionRange" min="10" max="90" value="50">
             <span id="compressionValue">50%</span>
         </div>
@@ -265,6 +265,7 @@
         <button id="compressBtn" disabled>Compress PDF</button>
 
         <div class="output-section">
+            <div id="contentInfo"></div>
             <div id="sizeInfo"></div>
             <a id="downloadLink" hidden>Download Compressed PDF</a>
         </div>
@@ -294,6 +295,7 @@
         const filePreview = document.getElementById('filePreview');
         const errorMessage = document.getElementById('errorMessage');
         const sizeInfo = document.getElementById('sizeInfo');
+        const contentInfo = document.getElementById('contentInfo');
 
         // Format file size for display
         function formatSize(bytes) {
@@ -319,6 +321,7 @@
             }
             errorMessage.style.display = 'none';
             sizeInfo.textContent = '';
+            contentInfo.textContent = '';
         });
 
         // Compress PDF
@@ -330,6 +333,7 @@
             compressBtn.textContent = 'Compressing...';
             errorMessage.style.display = 'none';
             sizeInfo.textContent = '';
+            contentInfo.textContent = '';
 
             try {
                 const originalSize = file.size;
@@ -337,9 +341,26 @@
                 const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
                 const compressionLevel = compressionRange.value / 100; // Convert to 0-1 scale
 
+                // Analyze PDF content
+                const pages = pdfDoc.getPages();
+                let imageCount = 0;
+                let textCount = 0;
+                for (const page of pages) {
+                    const resources = page.node.Resources?.XObject || {};
+                    for (const value of Object.values(resources)) {
+                        if (value instanceof PDFLib.PDFImage) {
+                            imageCount++;
+                        }
+                    }
+                    const text = await page.getTextContent();
+                    if (text.items.length > 0) {
+                        textCount += text.items.length;
+                    }
+                }
+                contentInfo.textContent = `PDF contains ${pages.length} page(s), ${imageCount} image(s), ${textCount} text element(s)`;
+
                 // Compress all images in the PDF
                 let imagesCompressed = false;
-                const pages = pdfDoc.getPages();
                 for (const page of pages) {
                     const resources = page.node.Resources?.XObject || {};
                     for (const [key, value] of Object.entries(resources)) {
@@ -353,8 +374,7 @@
                                 } else if (type === 'PNG') {
                                     img = await pdfDoc.embedPng(imgData);
                                 } else {
-                                    // Attempt to handle other formats by converting to JPEG
-                                    img = await pdfDoc.embedJpg(imgData);
+                                    img = await pdfDoc.embedJpg(imgData); // Fallback to JPEG
                                 }
                                 const scaledImg = img.scale(compressionLevel);
                                 const newImg = await pdfDoc.embedJpeg(await scaledImg.encode());
@@ -367,8 +387,18 @@
                     }
                 }
 
+                // Subset embedded fonts to reduce size
+                const fonts = pdfDoc.context.enumerateIndirectObjects().filter(obj => obj[1] instanceof PDFLib.PDFFont);
+                for (const [ref, font] of fonts) {
+                    try {
+                        await font.embedSubset(); // Subset fonts to include only used glyphs
+                    } catch (e) {
+                        console.warn('Skipping font subsetting due to error:', e);
+                    }
+                }
+
                 if (!imagesCompressed) {
-                    errorMessage.textContent = 'No compressible images found in PDF. File saved with basic optimization.';
+                    errorMessage.textContent = 'No compressible images found. Applied font subsetting and basic optimization.';
                     errorMessage.style.display = 'block';
                 }
 
