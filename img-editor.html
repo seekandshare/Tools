@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Free online Image Editor tool to crop, resize, and enhance images. Fast, easy, and optimized for performance.">
+    <meta name="keywords" content="image editor, crop image, resize image, enhance image, free image tool, SEO optimized">
+    <meta name="author" content="xAI Grok">
+    <meta name="robots" content="index, follow">
+    <title>Image Editor Tool - Crop, Resize, Enhance Online</title>
+
+    <!-- Favicon for branding -->
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Google Fonts for typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- CSS for responsive and attractive design -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding: 50px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 900px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .container:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .input-section, .editor-section, .output-section {
+            margin-bottom: 30px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #34495e;
+            margin-bottom: 10px;
+            display: block;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="file"] {
+            padding: 15px;
+            border: 2px dashed #ff6f61;
+            border-radius: 15px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]:hover {
+            border-color: #e74c3c;
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.02);
+        }
+
+        canvas {
+            max-width: 100%;
+            border: 2px solid #34495e;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button, input[type="number"] {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6f61, #e74c3c);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(231, 76, 60, 0.6);
+            background: linear-gradient(45deg, #e74c3c, #ff6f61);
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        input[type="number"] {
+            width: 100px;
+            border: 2px solid #ff6f61;
+            background: #f9ebeb;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #e74c3c;
+        }
+
+        #downloadLink {
+            display: inline-block;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        #downloadLink:hover {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(46, 204, 113, 0.6);
+        }
+
+        .ad-space {
+            width: 100%;
+            max-width: 728px;
+            margin: 40px 0;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 1s ease-out;
+        }
+
+        .ad-space ins {
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            h1 { font-size: 2.2rem; }
+            .container { padding: 30px; }
+            button { padding: 12px 20px; font-size: 1.1rem; }
+            .ad-space { max-width: 100%; padding: 15px; }
+            label { font-size: 1rem; }
+            .controls { flex-direction: column; }
+            input[type="number"] { width: 100%; }
+        }
+    </style>
+
+    <!-- Google AdSense Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+            crossorigin="anonymous"></script>
+    <!-- Replace 'ca-pub-XXXXXXXXXXXXXXXX' with your AdSense Publisher ID -->
+</head>
+<body>
+    <!-- Top Ad Space -->
+    <div class="ad-space">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="YYYYYYYYYY"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+    <h1>Image Editor Tool</h1>
+    <div class="container">
+        <div class="input-section">
+            <label for="imageInput">Upload Image to Edit:</label>
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
+
+        <div class="editor-section">
+            <canvas id="canvas"></canvas>
+            <div class="controls">
+                <button id="cropBtn" disabled>Crop</button>
+                <input type="number" id="widthInput" placeholder="Width" min="1">
+                <input type="number" id="heightInput" placeholder="Height" min="1">
+                <button id="resizeBtn" disabled>Resize</button>
+                <button id="enhanceBtn" disabled>Enhance</button>
+            </div>
+        </div>
+
+        <div class="output-section">
+            <a id="downloadLink" hidden download="edited-image.jpg">Download Edited Image</a>
+        </div>
+    </div>
+
+    <!-- Bottom Ad Space -->
+    <div class="ad-space">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="ZZZZZZZZZZ"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+    <!-- JavaScript for functionality -->
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const cropBtn = document.getElementById('cropBtn');
+        const widthInput = document.getElementById('widthInput');
+        const heightInput = document.getElementById('heightInput');
+        const resizeBtn = document.getElementById('resizeBtn');
+        const enhanceBtn = document.getElementById('enhanceBtn');
+        const downloadLink = document.getElementById('downloadLink');
+
+        let img = new Image();
+        let isCropping = false;
+        let startX, startY, endX, endY;
+        let originalImageData;
+
+        // Load image and enable editing
+        imageInput.addEventListener('change', () => {
+            const file = imageInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                        originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        cropBtn.disabled = false;
+                        resizeBtn.disabled = false;
+                        enhanceBtn.disabled = false;
+                        downloadLink.hidden = true; // Reset download link
+                    };
+                };
+                reader.onerror = () => alert('Failed to load image.');
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Crop functionality
+        canvas.addEventListener('mousedown', (e) => {
+            if (!isCropping) return;
+            const rect = canvas.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isCropping || !startX) return;
+            const rect = canvas.getBoundingClientRect();
+            endX = e.clientX - rect.left;
+            endY = e.clientY - rect.top;
+            ctx.putImageData(originalImageData, 0, 0); // Reset to original
+            ctx.strokeStyle = '#ff6f61';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(startX, startY, endX - startX, endY - startY);
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            if (isCropping && startX && endX) {
+                const width = Math.abs(endX - startX);
+                const height = Math.abs(endY - startY);
+                const cropX = Math.min(startX, endX);
+                const cropY = Math.min(startY, endY);
+                const croppedImg = ctx.getImageData(cropX, cropY, width, height);
+                canvas.width = width;
+                canvas.height = height;
+                ctx.putImageData(croppedImg, 0, 0);
+                originalImageData = croppedImg;
+                isCropping = false;
+                cropBtn.textContent = 'Crop';
+                startX = endX = startY = endY = null;
+            }
+        });
+
+        cropBtn.addEventListener('click', () => {
+            isCropping = !isCropping;
+            cropBtn.textContent = isCropping ? 'Finish Cropping' : 'Crop';
+            if (!isCropping) ctx.putImageData(originalImageData, 0, 0); // Reset if cancelled
+        });
+
+        // Resize functionality
+        resizeBtn.addEventListener('click', () => {
+            const newWidth = parseInt(widthInput.value) || canvas.width;
+            const newHeight = parseInt(heightInput.value) || canvas.height;
+            if (newWidth < 1 || newHeight < 1) {
+                alert('Width and height must be positive numbers.');
+                return;
+            }
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = newWidth;
+            tempCanvas.height = newHeight;
+            tempCtx.drawImage(canvas, 0, 0, newWidth, newHeight);
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+            ctx.drawImage(tempCanvas, 0, 0);
+            originalImageData = ctx.getImageData(0, 0, newWidth, newHeight);
+        });
+
+        // Enhance functionality (brightness/contrast)
+        enhanceBtn.addEventListener('click', () => {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = Math.min(255, data[i] * 1.1 + 20);     // Red
+                data[i + 1] = Math.min(255, data[i + 1] * 1.1 + 20); // Green
+                data[i + 2] = Math.min(255, data[i + 2] * 1.1 + 20); // Blue
+            }
+            ctx.putImageData(imageData, 0, 0);
+            originalImageData = imageData;
+        });
+
+        // Download edited image
+        downloadLink.addEventListener('click', (e) => {
+            downloadLink.href = canvas.toDataURL('image/jpeg');
+        });
+    </script>
+</body>
+</html>
