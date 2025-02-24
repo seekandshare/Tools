@@ -75,7 +75,7 @@
             letter-spacing: 0.5px;
         }
 
-        #filePreview {
+        #filePreview, #sizeInfo {
             font-size: 1rem;
             color: #7f8c8d;
             margin-top: 10px;
@@ -225,6 +225,7 @@
         <button id="compressBtn" disabled>Compress PDF</button>
 
         <div class="output-section">
+            <div id="sizeInfo"></div>
             <a id="downloadLink" hidden>Download Compressed PDF</a>
         </div>
     </div>
@@ -250,6 +251,14 @@
         const downloadLink = document.getElementById('downloadLink');
         const filePreview = document.getElementById('filePreview');
         const errorMessage = document.getElementById('errorMessage');
+        const sizeInfo = document.getElementById('sizeInfo');
+
+        // Format file size for display
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
 
         // Show file preview and enable button
         pdfInput.addEventListener('change', () => {
@@ -262,6 +271,7 @@
                 compressBtn.disabled = true;
             }
             errorMessage.style.display = 'none';
+            sizeInfo.textContent = '';
         });
 
         // Compress PDF
@@ -272,42 +282,32 @@
             compressBtn.disabled = true;
             compressBtn.textContent = 'Compressing...';
             errorMessage.style.display = 'none';
+            sizeInfo.textContent = '';
 
             try {
+                const originalSize = file.size;
                 const arrayBuffer = await file.arrayBuffer();
                 const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
 
-                // Access all embedded images in the document
-                const images = pdfDoc.getEmbeddedImages ? pdfDoc.getEmbeddedImages() : [];
+                // Compress images in the PDF
                 let imagesCompressed = false;
-
-                if (images.length > 0) {
-                    for (const img of images) {
-                        try {
-                            const { width, height } = img;
-                            if (img.type === 'JPEG') { // Only compress JPEG images
-                                const scaledImg = img.scale(0.5); // Reduce quality to 50%
-                                const newImg = await pdfDoc.embedJpeg(await scaledImg.encode());
-                                // Replace the original image reference (not directly supported, so re-embed in pages)
-                                imagesCompressed = true;
-                            }
-                        } catch (e) {
-                            console.warn('Skipping image compression due to error:', e);
-                        }
-                    }
-
-                    // Re-embed images in pages (manual replacement)
-                    const pages = pdfDoc.getPages();
-                    for (const page of pages) {
-                        const resources = page.node.Resources?.XObject;
-                        if (resources) {
-                            for (const [key, value] of Object.entries(resources)) {
-                                if (value instanceof PDFLib.PDFImage && value.type === 'JPEG') {
-                                    const scaledImg = value.scale(0.5);
-                                    const newImg = await pdfDoc.embedJpeg(await scaledImg.encode());
+                const pages = pdfDoc.getPages();
+                for (const page of pages) {
+                    const resources = page.node.Resources?.XObject || {};
+                    for (const [key, value] of Object.entries(resources)) {
+                        if (value instanceof PDFLib.PDFImage) {
+                            try {
+                                const type = value.subtype; // JPEG or PNG
+                                if (type === 'JPEG' || type === 'PNG') {
+                                    const imgData = await value.getBytes();
+                                    const img = type === 'JPEG' ? await pdfDoc.embedJpg(imgData) : await pdfDoc.embedPng(imgData);
+                                    const scaledImg = img.scale(0.5); // Reduce to 50% quality
+                                    const newImg = await pdfDoc.embedJpeg(await scaledImg.encode()); // Convert to JPEG
                                     resources[key] = newImg.ref;
                                     imagesCompressed = true;
                                 }
+                            } catch (e) {
+                                console.warn('Skipping image compression due to error:', e);
                             }
                         }
                     }
@@ -321,7 +321,9 @@
                 const pdfBytes = await pdfDoc.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
+                const compressedSize = blob.size;
 
+                sizeInfo.textContent = `Original: ${formatSize(originalSize)} | Compressed: ${formatSize(compressedSize)}`;
                 downloadLink.href = url;
                 downloadLink.download = 'compressed.pdf';
                 downloadLink.textContent = 'Download Compressed PDF';
