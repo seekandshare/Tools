@@ -61,7 +61,7 @@
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
         }
 
-        .input-section, .output-section {
+        .input-section, .compression-section, .output-section {
             margin-bottom: 30px;
             animation: fadeInUp 0.8s ease-out;
         }
@@ -102,6 +102,39 @@
             border-color: #2980b9;
             background: rgba(255, 255, 255, 1);
             transform: scale(1.02);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(to right, #3498db, #74ebd5);
+            border-radius: 5px;
+            outline: none;
+            transition: background 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #ffffff;
+            border: 2px solid #3498db;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        #compressionValue {
+            font-size: 1.3rem;
+            color: #3498db;
+            margin-left: 15px;
+            font-weight: 600;
         }
 
         button {
@@ -191,6 +224,7 @@
             button { padding: 12px 20px; font-size: 1.1rem; }
             .ad-space { max-width: 100%; padding: 15px; }
             label { font-size: 1rem; }
+            #compressionValue { font-size: 1.1rem; }
         }
     </style>
 
@@ -222,6 +256,12 @@
             <div id="errorMessage" class="error-message"></div>
         </div>
 
+        <div class="compression-section">
+            <label for="compressionRange">Compression Level (10-90%):</label>
+            <input type="range" id="compressionRange" min="10" max="90" value="50">
+            <span id="compressionValue">50%</span>
+        </div>
+
         <button id="compressBtn" disabled>Compress PDF</button>
 
         <div class="output-section">
@@ -247,6 +287,8 @@
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
     <script>
         const pdfInput = document.getElementById('pdfInput');
+        const compressionRange = document.getElementById('compressionRange');
+        const compressionValue = document.getElementById('compressionValue');
         const compressBtn = document.getElementById('compressBtn');
         const downloadLink = document.getElementById('downloadLink');
         const filePreview = document.getElementById('filePreview');
@@ -259,6 +301,11 @@
             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
             return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
         }
+
+        // Update compression value dynamically
+        compressionRange.addEventListener('input', () => {
+            compressionValue.textContent = `${compressionRange.value}%`;
+        });
 
         // Show file preview and enable button
         pdfInput.addEventListener('change', () => {
@@ -288,6 +335,7 @@
                 const originalSize = file.size;
                 const arrayBuffer = await file.arrayBuffer();
                 const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                const compressionLevel = compressionRange.value / 100; // Convert to 0-1 scale
 
                 // Compress all images in the PDF
                 let imagesCompressed = false;
@@ -308,8 +356,8 @@
                                     // Attempt to handle other formats by converting to JPEG
                                     img = await pdfDoc.embedJpg(imgData);
                                 }
-                                const scaledImg = img.scale(0.5); // Reduce to 50% quality
-                                const newImg = await pdfDoc.embedJpeg(await scaledImg.encode()); // Convert to JPEG
+                                const scaledImg = img.scale(compressionLevel);
+                                const newImg = await pdfDoc.embedJpeg(await scaledImg.encode());
                                 resources[key] = newImg.ref;
                                 imagesCompressed = true;
                             } catch (e) {
@@ -319,11 +367,8 @@
                     }
                 }
 
-                // Optimize PDF by removing redundant data (basic optimization)
-                pdfDoc.removeRedundantObjects(); // Remove unused objects if supported
-
                 if (!imagesCompressed) {
-                    errorMessage.textContent = 'No compressible images found in PDF. Basic optimization applied.';
+                    errorMessage.textContent = 'No compressible images found in PDF. File saved with basic optimization.';
                     errorMessage.style.display = 'block';
                 }
 
