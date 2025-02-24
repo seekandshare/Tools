@@ -287,6 +287,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/htmlDocx/0.0.1/htmlDocx.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script>
+        // Ensure pdf.js worker is set
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
         const pdfInput = document.getElementById('pdfInput');
         const formatSelect = document.getElementById('formatSelect');
         const convertBtn = document.getElementById('convertBtn');
@@ -319,26 +322,43 @@
             try {
                 const format = formatSelect.value;
                 const arrayBuffer = await file.arrayBuffer();
-                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
 
-                if (format === 'word') {
-                    let textContent = '';
-                    for (let i = 0; i < pdfDoc.getPageCount(); i++) {
-                        const page = pdfDoc.getPage(i);
-                        const text = await page.getTextContent();
-                        textContent += text.items.map(item => item.str).join(' ') + '\n';
+                if (format === 'word' || format === 'annotated') {
+                    const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+
+                    if (format === 'word') {
+                        let textContent = '';
+                        for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+                            const page = pdfDoc.getPage(i);
+                            const text = await page.getTextContent();
+                            textContent += text.items.map(item => item.str).join(' ') + '\n';
+                        }
+                        if (!textContent.trim()) throw new Error('No text found in PDF.');
+                        const html = `<p>${textContent.replace(/\n/g, '<br>')}</p>`;
+                        const docxBlob = htmlDocx.asBlob(html);
+                        const url = URL.createObjectURL(docxBlob);
+                        downloadLink.href = url;
+                        downloadLink.download = 'converted.docx';
+                    } else if (format === 'annotated') {
+                        const page = pdfDoc.getPage(0);
+                        page.drawText('Converted by ToolBox', {
+                            x: 50,
+                            y: page.getHeight() - 50,
+                            size: 20,
+                            color: PDFLib.rgb(1, 0, 0),
+                        });
+                        const pdfBytes = await pdfDoc.save();
+                        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                        const url = URL.createObjectURL(blob);
+                        downloadLink.href = url;
+                        downloadLink.download = 'annotated.pdf';
                     }
-                    if (!textContent.trim()) throw new Error('No text found in PDF.');
-                    const html = `<p>${textContent.replace(/\n/g, '<br>')}</p>`;
-                    const docxBlob = htmlDocx.asBlob(html);
-                    const url = URL.createObjectURL(docxBlob);
-                    downloadLink.href = url;
-                    downloadLink.download = 'converted.docx';
                 } else if (format === 'jpg') {
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    const page = await pdf.getPage(1); // Page numbers start at 1 in pdf.js
+                    const viewport = page.getViewport({ scale: 2 });
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    const page = pdfDoc.getPage(0);
-                    const viewport = page.getViewport({ scale: 2 });
                     canvas.width = viewport.width;
                     canvas.height = viewport.height;
 
@@ -346,19 +366,6 @@
                     const jpgUrl = canvas.toDataURL('image/jpeg', 0.9);
                     downloadLink.href = jpgUrl;
                     downloadLink.download = 'converted.jpg';
-                } else if (format === 'annotated') {
-                    const page = pdfDoc.getPage(0);
-                    page.drawText('Converted by ToolBox', {
-                        x: 50,
-                        y: page.getHeight() - 50,
-                        size: 20,
-                        color: PDFLib.rgb(1, 0, 0),
-                    });
-                    const pdfBytes = await pdfDoc.save();
-                    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                    const url = URL.createObjectURL(blob);
-                    downloadLink.href = url;
-                    downloadLink.download = 'annotated.pdf';
                 }
 
                 downloadLink.textContent = `Download ${format.toUpperCase()} File`;
