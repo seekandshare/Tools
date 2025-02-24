@@ -277,20 +277,38 @@
                 const arrayBuffer = await file.arrayBuffer();
                 const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
 
-                // Compress images in the PDF
-                const pages = pdfDoc.getPages();
+                // Access all embedded images in the document
+                const images = pdfDoc.getEmbeddedImages ? pdfDoc.getEmbeddedImages() : [];
                 let imagesCompressed = false;
-                for (const page of pages) {
-                    const images = page.node.getImages();
+
+                if (images.length > 0) {
                     for (const img of images) {
                         try {
-                            const { width, height } = img.image;
-                            const scaledImg = img.image.scale(0.5); // Reduce quality to 50%
-                            const newImg = await pdfDoc.embedJpeg(await scaledImg.encode());
-                            img.replace(newImg);
-                            imagesCompressed = true;
+                            const { width, height } = img;
+                            if (img.type === 'JPEG') { // Only compress JPEG images
+                                const scaledImg = img.scale(0.5); // Reduce quality to 50%
+                                const newImg = await pdfDoc.embedJpeg(await scaledImg.encode());
+                                // Replace the original image reference (not directly supported, so re-embed in pages)
+                                imagesCompressed = true;
+                            }
                         } catch (e) {
-                            console.warn(' Skipping image compression due to error:', e);
+                            console.warn('Skipping image compression due to error:', e);
+                        }
+                    }
+
+                    // Re-embed images in pages (manual replacement)
+                    const pages = pdfDoc.getPages();
+                    for (const page of pages) {
+                        const resources = page.node.Resources?.XObject;
+                        if (resources) {
+                            for (const [key, value] of Object.entries(resources)) {
+                                if (value instanceof PDFLib.PDFImage && value.type === 'JPEG') {
+                                    const scaledImg = value.scale(0.5);
+                                    const newImg = await pdfDoc.embedJpeg(await scaledImg.encode());
+                                    resources[key] = newImg.ref;
+                                    imagesCompressed = true;
+                                }
+                            }
                         }
                     }
                 }
