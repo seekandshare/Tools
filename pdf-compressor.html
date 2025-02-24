@@ -75,6 +75,19 @@
             letter-spacing: 0.5px;
         }
 
+        #filePreview {
+            font-size: 1rem;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 1rem;
+            margin-top: 10px;
+            display: none;
+        }
+
         input[type="file"] {
             padding: 15px;
             border: 2px dashed #3498db;
@@ -205,6 +218,8 @@
         <div class="input-section">
             <label for="pdfInput">Upload PDF to Compress:</label>
             <input type="file" id="pdfInput" accept=".pdf">
+            <div id="filePreview">No file selected.</div>
+            <div id="errorMessage" class="error-message"></div>
         </div>
 
         <button id="compressBtn" disabled>Compress PDF</button>
@@ -233,10 +248,20 @@
         const pdfInput = document.getElementById('pdfInput');
         const compressBtn = document.getElementById('compressBtn');
         const downloadLink = document.getElementById('downloadLink');
+        const filePreview = document.getElementById('filePreview');
+        const errorMessage = document.getElementById('errorMessage');
 
-        // Enable compress button when a file is uploaded
+        // Show file preview and enable button
         pdfInput.addEventListener('change', () => {
-            compressBtn.disabled = !pdfInput.files.length;
+            const file = pdfInput.files[0];
+            if (file) {
+                filePreview.textContent = `Selected: ${file.name}`;
+                compressBtn.disabled = false;
+            } else {
+                filePreview.textContent = 'No file selected.';
+                compressBtn.disabled = true;
+            }
+            errorMessage.style.display = 'none';
         });
 
         // Compress PDF
@@ -246,6 +271,7 @@
 
             compressBtn.disabled = true;
             compressBtn.textContent = 'Compressing...';
+            errorMessage.style.display = 'none';
 
             try {
                 const arrayBuffer = await file.arrayBuffer();
@@ -253,6 +279,7 @@
 
                 // Compress images in the PDF
                 const pages = pdfDoc.getPages();
+                let imagesCompressed = false;
                 for (const page of pages) {
                     const images = page.node.getImages();
                     for (const img of images) {
@@ -261,10 +288,16 @@
                             const scaledImg = img.image.scale(0.5); // Reduce quality to 50%
                             const newImg = await pdfDoc.embedJpeg(await scaledImg.encode());
                             img.replace(newImg);
+                            imagesCompressed = true;
                         } catch (e) {
-                            console.warn('Image compression skipped:', e);
+                            console.warn(' Skipping image compression due to error:', e);
                         }
                     }
+                }
+
+                if (!imagesCompressed) {
+                    errorMessage.textContent = 'No compressible images found in PDF. File saved as-is.';
+                    errorMessage.style.display = 'block';
                 }
 
                 const pdfBytes = await pdfDoc.save();
@@ -279,7 +312,8 @@
                 setTimeout(() => downloadLink.style.opacity = 1, 50);
             } catch (error) {
                 console.error('Compression error:', error);
-                alert('An error occurred during compression. Please try again.');
+                errorMessage.textContent = `Error: ${error.message || 'Failed to compress PDF. It might be encrypted or corrupted.'}`;
+                errorMessage.style.display = 'block';
             }
 
             compressBtn.textContent = 'Compress PDF';
