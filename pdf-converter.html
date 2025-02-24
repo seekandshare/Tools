@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Free online PDF Converter tool to convert PDF files to Word, JPG, or other formats. Fast, easy, and optimized for performance.">
+    <meta name="description" content="Free online PDF Converter tool to convert all pages of PDF files to Word, JPG, or annotated PDF. Fast, easy, and optimized for performance.">
     <meta name="keywords" content="PDF converter, convert PDF to Word, PDF to JPG, free PDF tool, online PDF editor, SEO optimized">
     <meta name="author" content="xAI Grok">
     <meta name="robots" content="index, follow">
@@ -257,7 +257,7 @@
             <label for="formatSelect">Choose Output Format:</label>
             <select id="formatSelect">
                 <option value="word">Word (DOCX)</option>
-                <option value="jpg">JPG (Images)</option>
+                <option value="jpg">JPG (All Pages as ZIP)</option>
                 <option value="annotated">PDF with Annotations</option>
             </select>
         </div>
@@ -282,12 +282,14 @@
         </script>
     </div>
 
-    <!-- JavaScript for functionality -->
+    <!-- JavaScript Libraries -->
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/htmlDocx/0.0.1/htmlDocx.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script>
-        // Ensure pdf.js worker is set
+        // Set pdf.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
 
         const pdfInput = document.getElementById('pdfInput');
@@ -323,13 +325,13 @@
                 const format = formatSelect.value;
                 const arrayBuffer = await file.arrayBuffer();
 
-                if (format === 'word' || format === 'annotated') {
-                    const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                if (format === 'word' || format === 'jpg') {
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
                     if (format === 'word') {
                         let textContent = '';
-                        for (let i = 0; i < pdfDoc.getPageCount(); i++) {
-                            const page = pdfDoc.getPage(i);
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
                             const text = await page.getTextContent();
                             textContent += text.items.map(item => item.str).join(' ') + '\n';
                         }
@@ -339,36 +341,45 @@
                         const url = URL.createObjectURL(docxBlob);
                         downloadLink.href = url;
                         downloadLink.download = 'converted.docx';
-                    } else if (format === 'annotated') {
-                        const page = pdfDoc.getPage(0);
-                        page.drawText('Converted by ToolBox', {
+                    } else if (format === 'jpg') {
+                        const zip = new JSZip();
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const viewport = page.getViewport({ scale: 2 });
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            canvas.width = viewport.width;
+                            canvas.height = viewport.height;
+
+                            await page.render({ canvasContext: ctx, viewport }).promise;
+                            const jpgDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                            const jpgBlob = await (await fetch(jpgDataUrl)).blob();
+                            zip.file(`page-${i}.jpg`, jpgBlob);
+                        }
+                        const zipBlob = await zip.generateAsync({ type: 'blob' });
+                        const url = URL.createObjectURL(zipBlob);
+                        downloadLink.href = url;
+                        downloadLink.download = 'converted-pages.zip';
+                    }
+                } else if (format === 'annotated') {
+                    const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                    for (let i = 0; i < pdfDoc.getPageCount(); i++) {
+                        const page = pdfDoc.getPage(i);
+                        page.drawText(`Converted by ToolBox - Page ${i + 1}`, {
                             x: 50,
                             y: page.getHeight() - 50,
                             size: 20,
                             color: PDFLib.rgb(1, 0, 0),
                         });
-                        const pdfBytes = await pdfDoc.save();
-                        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                        const url = URL.createObjectURL(blob);
-                        downloadLink.href = url;
-                        downloadLink.download = 'annotated.pdf';
                     }
-                } else if (format === 'jpg') {
-                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                    const page = await pdf.getPage(1); // Page numbers start at 1 in pdf.js
-                    const viewport = page.getViewport({ scale: 2 });
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-
-                    await page.render({ canvasContext: ctx, viewport }).promise;
-                    const jpgUrl = canvas.toDataURL('image/jpeg', 0.9);
-                    downloadLink.href = jpgUrl;
-                    downloadLink.download = 'converted.jpg';
+                    const pdfBytes = await pdfDoc.save();
+                    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                    const url = URL.createObjectURL(blob);
+                    downloadLink.href = url;
+                    downloadLink.download = 'annotated.pdf';
                 }
 
-                downloadLink.textContent = `Download ${format.toUpperCase()} File`;
+                downloadLink.textContent = `Download ${format === 'jpg' ? 'ZIP' : format.toUpperCase()} File`;
                 downloadLink.hidden = false;
                 downloadLink.style.opacity = 0;
                 setTimeout(() => downloadLink.style.opacity = 1, 100);
