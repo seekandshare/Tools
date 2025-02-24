@@ -77,6 +77,19 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
+        #filePreview {
+            font-size: 1rem;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 1rem;
+            margin-top: 10px;
+            display: none;
+        }
+
         input[type="file"] {
             padding: 20px;
             border: 3px dashed #ff6f61;
@@ -185,169 +198,4 @@
 
         /* Animations */
         @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 480px) {
-            h1 { font-size: 2.4rem; }
-            .container { padding: 30px; max-width: 90%; }
-            button { padding: 14px 25px; font-size: 1.1rem; }
-            .ad-space { max-width: 100%; padding: 20px; }
-            label { font-size: 1.1rem; }
-            select { font-size: 1rem; padding: 12px; }
-            input[type="file"] { padding: 15px; font-size: 1rem; }
-            #downloadLink { padding: 12px 25px; font-size: 1rem; }
-        }
-    </style>
-
-    <!-- Google AdSense Script -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
-            crossorigin="anonymous"></script>
-    <!-- Replace 'ca-pub-XXXXXXXXXXXXXXXX' with your AdSense Publisher ID -->
-</head>
-<body>
-    <!-- Top Ad Space -->
-    <div class="ad-space">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-             data-ad-slot="YYYYYYYYYY"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>
-            (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-    </div>
-
-    <h1>PDF Converter Tool</h1>
-    <div class="container">
-        <div class="input-section">
-            <label for="pdfInput">Upload Your PDF:</label>
-            <input type="file" id="pdfInput" accept=".pdf">
-        </div>
-
-        <div class="format-section">
-            <label for="formatSelect">Choose Output Format:</label>
-            <select id="formatSelect">
-                <option value="word">Word (DOCX)</option>
-                <option value="jpg">JPG (Images)</option>
-                <option value="annotated">PDF with Annotations</option>
-            </select>
-        </div>
-
-        <button id="convertBtn" disabled>Convert PDF</button>
-
-        <div class="output-section">
-            <a id="downloadLink" hidden>Download Converted File</a>
-        </div>
-    </div>
-
-    <!-- Bottom Ad Space -->
-    <div class="ad-space">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-             data-ad-slot="ZZZZZZZZZZ"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>
-            (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-    </div>
-
-    <!-- JavaScript for functionality -->
-    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmlDocx/0.0.1/htmlDocx.min.js"></script>
-    <script>
-        const pdfInput = document.getElementById('pdfInput');
-        const formatSelect = document.getElementById('formatSelect');
-        const convertBtn = document.getElementById('convertBtn');
-        const downloadLink = document.getElementById('downloadLink');
-
-        // Enable convert button when a file is uploaded
-        pdfInput.addEventListener('change', () => {
-            convertBtn.disabled = !pdfInput.files.length;
-        });
-
-        // Convert PDF based on selected format
-        convertBtn.addEventListener('click', async () => {
-            const file = pdfInput.files[0];
-            if (!file) return;
-
-            convertBtn.disabled = true;
-            convertBtn.textContent = 'Converting...';
-
-            try {
-                const format = formatSelect.value;
-                const arrayBuffer = await file.arrayBuffer();
-                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
-
-                if (format === 'word') {
-                    let textContent = '';
-                    for (let i = 0; i < pdfDoc.getPageCount(); i++) {
-                        const page = pdfDoc.getPage(i);
-                        const text = await page.getTextContent();
-                        textContent += text.items.map(item => item.str).join(' ') + '\n';
-                    }
-                    const html = `<p>${textContent.replace(/\n/g, '<br>')}</p>`;
-                    const docxBlob = htmlDocx.asBlob(html);
-                    const url = URL.createObjectURL(docxBlob);
-                    downloadLink.href = url;
-                    downloadLink.download = 'converted.docx';
-                } else if (format === 'jpg') {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const page = pdfDoc.getPage(0);
-                    const viewport = page.getViewport({ scale: 2 });
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-
-                    await page.render({ canvasContext: ctx, viewport }).promise;
-                    const jpgUrl = canvas.toDataURL('image/jpeg', 0.9);
-                    downloadLink.href = jpgUrl;
-                    downloadLink.download = 'converted.jpg';
-                } else if (format === 'annotated') {
-                    const page = pdfDoc.getPage(0);
-                    page.drawText('Converted by ToolBox', {
-                        x: 50,
-                        y: page.getHeight() - 50,
-                        size: 20,
-                        color: PDFLib.rgb(1, 0, 0),
-                    });
-                    const pdfBytes = await pdfDoc.save();
-                    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                    const url = URL.createObjectURL(blob);
-                    downloadLink.href = url;
-                    downloadLink.download = 'annotated.pdf';
-                }
-
-                downloadLink.textContent = `Download ${format.toUpperCase()} File`;
-                downloadLink.hidden = false;
-                downloadLink.style.opacity = 0;
-                setTimeout(() => downloadLink.style.opacity = 1, 100);
-            } catch (error) {
-                console.error('Conversion error:', error);
-                alert('An error occurred during conversion. Please try again.');
-            }
-
-            convertBtn.textContent = 'Convert PDF';
-            convertBtn.disabled = false;
-        });
-    </script>
-
-    <!-- Include pdf2json for text extraction -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-</body>
-</html>
+            from { opacity: 0; transform: translateY(-30
