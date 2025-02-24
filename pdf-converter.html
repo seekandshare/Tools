@@ -284,10 +284,10 @@
 
     <!-- JavaScript Libraries -->
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmlDocx/0.0.1/htmlDocx.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
     <script>
         // Set pdf.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
@@ -336,8 +336,20 @@
                             textContent += text.items.map(item => item.str).join(' ') + '\n';
                         }
                         if (!textContent.trim()) throw new Error('No text found in PDF.');
-                        const html = `<p>${textContent.replace(/\n/g, '<br>')}</p>`;
-                        const docxBlob = htmlDocx.asBlob(html);
+
+                        // Use docx.js to create DOCX
+                        const doc = new docx.Document({
+                            sections: [{
+                                properties: {},
+                                children: [
+                                    new docx.Paragraph({
+                                        text: textContent,
+                                        spacing: { after: 200 }
+                                    })
+                                ]
+                            }]
+                        });
+                        const docxBlob = await docx.Packer.toBlob(doc);
                         const url = URL.createObjectURL(docxBlob);
                         downloadLink.href = url;
                         downloadLink.download = 'converted.docx';
